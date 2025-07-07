@@ -1,26 +1,102 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Zack's Website</title>
-    <link rel="stylesheet" href="Styles/webmain.css">
-  </head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web Metronome</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #121212;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .bpm-display {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    input[type="range"] {
+      width: 300px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #1f80e0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Metronome</h1>
+  <div class="bpm-display" id="bpmDisplay">120 BPM</div>
+  <input type="range" id="bpmSlider" min="40" max="300" value="120">
+  <button id="toggleBtn">Start</button>
 
-  <body>
-    <h1>
-      Zack's Website
-    </h1>
+  <script>
+    let bpm = 120;
+    let isPlaying = false;
+    let intervalId = null;
+    const bpmSlider = document.getElementById('bpmSlider');
+    const bpmDisplay = document.getElementById('bpmDisplay');
+    const toggleBtn = document.getElementById('toggleBtn');
 
-    <button class="button1">
-      Hi BB ♥
-    </button>
-    
-    <button class="button2">
-      These are buttons
-    </button>
-    
-    <button class="button3">
-      They do nothing
-    </button>
-    <img src="bb.png">
-  </body>
+    bpmSlider.addEventListener('input', () => {
+      bpm = bpmSlider.value;
+      bpmDisplay.textContent = `${bpm} BPM`;
+      if (isPlaying) {
+        stopMetronome();
+        startMetronome();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      isPlaying ? stopMetronome() : startMetronome();
+    });
+
+    function startMetronome() {
+      isPlaying = true;
+      toggleBtn.textContent = 'Stop';
+      const interval = 60000 / bpm;
+      playTick(); // Play immediately
+      intervalId = setInterval(playTick, interval);
+    }
+
+    function stopMetronome() {
+      isPlaying = false;
+      toggleBtn.textContent = 'Start';
+      clearInterval(intervalId);
+    }
+
+    function playTick() {
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(1000, context.currentTime); // Hz
+      gainNode.gain.setValueAtTime(0.5, context.currentTime);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.1);
+    }
+  </script>
+</body>
 </html>
